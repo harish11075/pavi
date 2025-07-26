@@ -1,1 +1,70 @@
-i am a good girl
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Sample dataset
+data = {
+    'Train Name': ['Express', 'Local', 'Mail', 'Superfast', 'Superfast', 'Superfast', 'Local', 'Express', 'Rajdhani', 'Garib Rath'],
+    'Departure Station': ['Mumbai', 'Chennai', 'Chennai', 'Pune', 'Kolkata', 'Mumbai', 'Pune', 'Pune', 'Hyderabad', 'Mumbai'],
+    'Arrival Station': ['Bangalore', 'Pune', 'Lucknow', 'Jaipur', 'Jaipur', 'Pune', 'Mumbai', 'Chennai', 'Bangalore', 'Hyderabad'],
+    'Departure Time': ['2024-01-28 11:45:12', '2024-03-31 23:42:55', '2024-07-28 13:48:12', '2024-06-04 14:10:53', 
+                       '2024-09-19 05:08:03', '2024-01-19 12:15:27', '2024-07-12 15:10:20', '2024-05-03 10:58:49', 
+                       '2024-08-14 17:38:49', '2024-11-18 02:26:37'],
+    'Scheduled Arrival': ['2024-01-29 10:45:12', '2024-04-01 09:42:55', '2024-07-29 06:48:12', '2024-06-05 04:10:53', 
+                          '2024-09-20 09:08:03', '2024-01-20 16:15:27', '2024-07-12 19:10:20', '2024-05-03 16:58:49', 
+                          '2024-08-15 22:38:49', '2024-11-19 05:26:37'],
+    'Actual Arrival': ['2024-01-29 11:49:12', '2024-04-01 09:42:55', '2024-07-29 08:14:12', '2024-06-05 05:49:53', 
+                       '2024-09-20 09:08:03', '2024-01-20 16:15:27', '2024-07-12 20:36:20', '2024-05-03 18:43:49', 
+                       '2024-08-15 22:38:49', '2024-11-19 05:27:37'],
+    'Weather': ['Storm', 'Storm', 'Clear', 'Rain', 'Clear', 'Clear', 'Fog', 'Rain', 'Rain', 'Cloudy'],
+    'Delayed': [1, 0, 1, 1, 0, 0, 1, 1, 0, 0]
+}
+
+# Load data into DataFrame
+df = pd.DataFrame(data)
+
+# Convert datetime columns
+df['Departure Time'] = pd.to_datetime(df['Departure Time'])
+df['Scheduled Arrival'] = pd.to_datetime(df['Scheduled Arrival'])
+df['Actual Arrival'] = pd.to_datetime(df['Actual Arrival'])
+
+# Feature: Travel Duration in hours
+df['Travel Duration'] = (df['Scheduled Arrival'] - df['Departure Time']).dt.total_seconds() / 3600
+
+# Feature: Delay in minutes
+df['Delay (mins)'] = (df['Actual Arrival'] - df['Scheduled Arrival']).dt.total_seconds() / 60
+
+# Label encode weather conditions
+le = LabelEncoder()
+df['Weather_Code'] = le.fit_transform(df['Weather'])
+
+# Final features for training
+X = df[['Travel Duration', 'Delay (mins)', 'Weather_Code']]
+y = df['Delayed']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Model training
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
+
+# Prediction
+y_pred = clf.predict(X_test)
+
+# Evaluation
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Sample Prediction Output
+sample_input = pd.DataFrame({
+    'Travel Duration': [10.0],
+    'Delay (mins)': [90],
+    'Weather_Code': [le.transform(['Rain'])[0]]
+})
+
+sample_pred = clf.predict(sample_input)
+print("\nSample Prediction (1 = Delayed, 0 = On Time):", sample_pred[0])
