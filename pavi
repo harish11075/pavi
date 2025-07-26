@@ -68,3 +68,19 @@ sample_input = pd.DataFrame({
 
 sample_pred = clf.predict(sample_input)
 print("\nSample Prediction (1 = Delayed, 0 = On Time):", sample_pred[0])
+OUTPUT:
+Confusion Matrix:
+ [[2 0]
+  [1 0]]
+
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.67      1.00      0.80         2
+           1       0.00      0.00      0.00         1
+
+    accuracy                           0.67         3
+   macro avg       0.33      0.50      0.40         3
+weighted avg       0.44      0.67      0.53         3
+
+Sample Prediction (1 = Delayed, 0 = On Time): 1
